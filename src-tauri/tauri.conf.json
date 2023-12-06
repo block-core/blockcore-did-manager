@@ -6,7 +6,7 @@
     "distDir": "../dist/app"
   },
   "package": {
-    "productName": "did-ion-manager",
+    "productName": "DID ION Manager",
     "version": "0.0.1"
   },
   "tauri": {
