@@ -1,5 +1,5 @@
 [package]
-name = "app"
+name = "did-ion-manager"
 version = "0.0.1"
 description = "DID ION Manager"
 authors = ["Blockcore"]
