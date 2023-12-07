@@ -4,6 +4,11 @@ import { RouterOutlet } from '@angular/router';
 import { invoke } from "@tauri-apps/api/tauri";
 import { DID, generateKeyPair, sign, verify, anchor } from '@decentralized-identity/ion-tools';
 
+import { save } from '@tauri-apps/api/dialog';
+
+import { writeTextFile, BaseDirectory } from '@tauri-apps/api/fs';
+import { dialog, fs } from '@tauri-apps/api';
+
 @Component({
   selector: "app-root",
   standalone: true,
@@ -83,6 +88,29 @@ export class AppComponent {
 
     console.log('SECP256K1 JWS verification successful:', valid);
     console.log(jws);
+
+
+    // Store the key material and source data of all operations that have been created for the DID
+    let ionOps = await did.getAllOperations();
+
+    const result = await dialog.open({ directory: true });
+
+    const content = JSON.stringify({ ops: ionOps });
+
+    const options = { path: result + '/ion-did-ops-v1.json', contents: content };
+    await fs.writeFile(options);
+
+    // const filePath = await save({
+    //   filters: [{
+    //     name: 'Identity',
+    //     extensions: ['json']
+    //   }]
+    // });
+
+    // // Write a text file to the `$APPCONFIG/app.conf` path
+    // await writeTextFile('ion-did-ops-v1.json',), { dir: BaseDirectory.AppConfig });
+
+    // await writeFile('./ion-did-ops-v1.json', JSON.stringify({ ops: ionOps }));
 
     // await anchor(request);
 
