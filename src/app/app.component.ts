@@ -2,6 +2,7 @@ import { Component } from "@angular/core";
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { invoke } from "@tauri-apps/api/tauri";
+import { DID, generateKeyPair, sign, verify, anchor } from '@decentralized-identity/ion-tools';
 
 @Component({
   selector: "app-root",
@@ -20,5 +21,70 @@ export class AppComponent {
     invoke<string>("greet", { name }).then((text) => {
       this.greetingMessage = text;
     });
+  }
+
+  pretty(json: any) {
+    return JSON.stringify(json, null, 2);;
+  }
+
+  async generate() {
+
+
+    let authnKeys = await generateKeyPair();
+    let did = new DID({
+      content: {
+        publicKeys: [
+          {
+            id: 'key-1',
+            type: 'EcdsaSecp256k1VerificationKey2019',
+            publicKeyJwk: authnKeys.publicJwk,
+            purposes: ['authentication']
+          }
+        ],
+        services: [
+          {
+            id: 'domain-1',
+            type: 'LinkedDomains',
+            serviceEndpoint: 'https://foo.example.com'
+          }
+        ]
+      }
+    });
+
+    console.log(did);
+    console.log(authnKeys);
+
+    let longFormURI = await did.getURI();
+    let shortFormURI = await did.getURI('short');
+
+    console.log(longFormURI);
+    console.log('');
+    console.log(shortFormURI);
+
+    let suffix = await did.getSuffix();
+    console.log(suffix);
+
+    let request = await did.generateRequest(0);
+    console.log(this.pretty(request));
+
+
+    let payload = '';
+    let key = (await did.getOperation(0)).update.privateJwk;
+
+    let jws = await sign({
+      privateJwk: key,
+      payload: payload
+    });
+
+    let valid = await verify({
+      publicJwk: key,
+      jws: jws
+    });
+
+    console.log('SECP256K1 JWS verification successful:', valid);
+    console.log(jws);
+
+    // await anchor(request);
+
   }
 }
