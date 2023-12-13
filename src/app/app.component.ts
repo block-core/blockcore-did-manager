@@ -8,11 +8,14 @@ import { save } from '@tauri-apps/api/dialog';
 
 import { writeTextFile, BaseDirectory } from '@tauri-apps/api/fs';
 import { dialog, fs } from '@tauri-apps/api';
+import {MatIconModule} from '@angular/material/icon';
+import {MatButtonModule} from '@angular/material/button';
+import {MatToolbarModule} from '@angular/material/toolbar';
 
 @Component({
   selector: "app-root",
   standalone: true,
-  imports: [CommonModule, RouterOutlet],
+  imports: [CommonModule, RouterOutlet, MatToolbarModule, MatButtonModule, MatIconModule],
   templateUrl: "./app.component.html",
   styleUrls: ["./app.component.css"],
 })
