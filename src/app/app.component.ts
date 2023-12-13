@@ -6,11 +6,12 @@ import { DID, generateKeyPair, sign, verify, anchor } from '@decentralized-ident
 
 import { save } from '@tauri-apps/api/dialog';
 
-import { writeTextFile, BaseDirectory } from '@tauri-apps/api/fs';
+import { writeTextFile, BaseDirectory, FileEntry } from '@tauri-apps/api/fs';
 import { dialog, fs } from '@tauri-apps/api';
-import {MatIconModule} from '@angular/material/icon';
-import {MatButtonModule} from '@angular/material/button';
-import {MatToolbarModule} from '@angular/material/toolbar';
+
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatToolbarModule } from '@angular/material/toolbar';
 
 @Component({
   selector: "app-root",
@@ -29,6 +30,49 @@ export class AppComponent {
     invoke<string>("greet", { name }).then((text) => {
       this.greetingMessage = text;
     });
+  }
+
+  directory?: string | string[] | null;
+  identities: any[] = [];
+  files: FileEntry[] = [];
+
+  chooseDirectory() {
+    dialog.open({ directory: true }).then(directory => {
+      // directory is the path of the selected directory
+      console.log(directory);
+      this.directory = directory;
+      this.readFiles(directory);
+    }).catch(error => {
+      // handle error
+      console.error(error);
+    });
+  }
+
+  readFiles(directory: string | string[] | null) {
+    if (typeof directory === 'string') {
+      fs.readDir(directory).then(files => {
+        // files is an array of file paths
+        console.log(files);
+        this.files = files;
+
+        files.forEach(file => {
+          fs.readTextFile(file.path).then(text => {
+            // text is the content of the file
+            console.log(text);
+            let json = JSON.parse(text);
+            console.log(json);
+            this.identities.push(json);
+          }).catch(error => {
+            // handle error
+            console.error(error);
+          });
+        });
+
+      }).catch(error => {
+        // handle error
+        console.error(error);
+      });
+    }
   }
 
   pretty(json: any) {

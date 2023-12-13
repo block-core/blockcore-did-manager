@@ -1,20 +1,27 @@
-  <mat-toolbar color="primary">
-    <button mat-icon-button class="example-icon" aria-label="Example icon-button with menu icon">
-      <mat-icon>menu</mat-icon>
-    </button>
-    <span>DID ION Manager</span>
-    <span class="example-spacer"></span>
-    <!-- <button mat-icon-button class="example-icon favorite-icon" aria-label="Example icon-button with heart icon">
+<mat-toolbar color="primary">
+  <button mat-icon-button class="example-icon" aria-label="Example icon-button with menu icon">
+    <mat-icon>menu</mat-icon>
+  </button>
+  <span>DID ION Manager</span>
+  <span class="example-spacer"></span>
+  <!-- <button mat-icon-button class="example-icon favorite-icon" aria-label="Example icon-button with heart icon">
       <mat-icon>favorite</mat-icon>
     </button> -->
-    <button mat-icon-button class="example-icon">
-      <mat-icon>add</mat-icon>
-    </button>
-  </mat-toolbar>
+  <button mat-icon-button class="example-icon">
+    <mat-icon>add</mat-icon>
+  </button>
+</mat-toolbar>
 
 <div class="container">
 
-  <button mat-raised-button color="primary">Choose directory for identities...</button>
+  <button mat-raised-button color="primary" (click)="chooseDirectory()">Choose directory for identities...</button>
+  <br><br>
+  <span>Selected directory: {{directory}}</span>
+  <br><br>
+
+  <div *ngFor="let identity of identities">
+    {{ identity | json }}</div>
+
   <br><br>
   <button mat-flat-button color="primary" (click)="generate()">Generate DID (see console output)</button>
   <br><br>
