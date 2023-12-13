@@ -56,7 +56,7 @@
       {
         "fullscreen": false,
         "resizable": true,
-        "title": "app",
+        "title": "DID ION Manager",
         "width": 800,
         "height": 600
       }
