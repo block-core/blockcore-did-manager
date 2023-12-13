@@ -18,11 +18,13 @@
   <br><br>
   <span>Selected directory: {{directory}}</span>
   <br><br>
+  
 
   <div *ngFor="let identity of identities">
-    Identity: <strong>{{ identity.name }}</strong>
+    Name: <strong>{{ identity.name }}</strong><br>
+    Identity: <strong>{{ identity.id }}</strong>
     <br>
-    Tags: {{ identity.tags }}
+    Tags: {{ identity.tags }}<br><br>
   </div>
 
   <br><br>

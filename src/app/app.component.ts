@@ -53,9 +53,10 @@ export class AppComponent {
       fs.readDir(directory).then(files => {
         // files is an array of file paths
         console.log(files);
-        this.files = files;
 
-        files.forEach(file => {
+        this.files = files.filter(file => file.path.endsWith('.identity.json'));
+
+        this.files.forEach(file => {
           fs.readTextFile(file.path).then(text => {
             // text is the content of the file
             console.log(text);
