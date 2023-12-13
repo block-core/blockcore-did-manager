@@ -20,7 +20,10 @@
   <br><br>
 
   <div *ngFor="let identity of identities">
-    {{ identity | json }}</div>
+    Identity: <strong>{{ identity.name }}</strong>
+    <br>
+    Tags: {{ identity.tags }}
+  </div>
 
   <br><br>
   <button mat-flat-button color="primary" (click)="generate()">Generate DID (see console output)</button>
