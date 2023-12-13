@@ -7,6 +7,8 @@ import { DID, generateKeyPair, sign, verify, anchor } from '@decentralized-ident
 import { save } from '@tauri-apps/api/dialog';
 
 import { writeTextFile, BaseDirectory, FileEntry } from '@tauri-apps/api/fs';
+
+// @ts-ignore
 import { dialog, fs } from '@tauri-apps/api';
 
 import { MatIconModule } from '@angular/material/icon';
