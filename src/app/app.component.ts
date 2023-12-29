@@ -15,6 +15,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 
+import { DidIonMethod } from '@web5/dids';
+import { Web5 } from '@web5/api';
+
 @Component({
   selector: "app-root",
   standalone: true,
@@ -83,6 +86,15 @@ export class AppComponent {
   }
 
   async generate() {
+
+    const myIonDid = await DidIonMethod.create({ services: [{ id: 'domain-1', type: 'LinkedDomains', serviceEndpoint: 'https://foo.example.com'}]});
+    console.log(myIonDid);
+
+    // const web5 = new Web5.connect({  });
+
+    // const myDid = await Web5.did.create("ion");
+    // console.log(myDid);
+    return;
 
 
     let authnKeys = await generateKeyPair();
