@@ -55,8 +55,10 @@ export class AppComponent {
         ];
 
         await this.generateIdentity(result.name, result.tags, services);
+        this.readFiles(this.directory!);
       }
     });
+    
   }
 
   greet(event: SubmitEvent, name: string): void {
@@ -77,7 +79,7 @@ export class AppComponent {
       // directory is the path of the selected directory
       console.log(directory);
       this.directory = directory;
-      this.readFiles(directory);
+      this.readFiles(this.directory);
     }).catch(error => {
       // handle error
       console.error(error);
@@ -113,6 +115,7 @@ export class AppComponent {
       fs.readDir(directory).then(files => {
         // files is an array of file paths
         console.log(files);
+
 
         this.files = files.filter(file => file.path.endsWith('.identity.json'));
 
