@@ -7,6 +7,7 @@ import { DID, generateKeyPair, sign, verify, anchor } from '@decentralized-ident
 import { save } from '@tauri-apps/api/dialog';
 
 import { writeTextFile, BaseDirectory, FileEntry } from '@tauri-apps/api/fs';
+import { writeFile } from '@tauri-apps/api/fs';
 
 // @ts-ignore
 import { dialog, fs } from '@tauri-apps/api';
@@ -17,6 +18,8 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 
 import { DidIonMethod } from '@web5/dids';
 import { Web5 } from '@web5/api';
+import { MatDialog } from '@angular/material/dialog';
+import { DialogCreate } from "./dialog-create.component";
 
 @Component({
   selector: "app-root",
@@ -27,6 +30,34 @@ import { Web5 } from '@web5/api';
 })
 export class AppComponent {
   greetingMessage = "";
+
+  constructor(public dialog: MatDialog) {
+
+  }
+
+  async createDialog() {
+    const dialogRef = this.dialog.open(DialogCreate);
+
+    dialogRef.afterClosed().subscribe(async result => {
+      console.log(result);
+
+      if (result) {
+        const services = [
+          {
+            "id": "#dwn",
+            "type": "DecentralizedWebNode",
+            "serviceEndpoint": {
+              "messageAuthorizationKeys": ["#dwn-sig"],
+              "nodes": ["https://dwn.liberstad.com"],
+              "recordEncryptionKeys": ["#dwn-sig"]
+            }
+          }
+        ];
+
+        await this.generateIdentity(result.name, result.tags, services);
+      }
+    });
+  }
 
   greet(event: SubmitEvent, name: string): void {
     event.preventDefault();
@@ -53,7 +84,31 @@ export class AppComponent {
     });
   }
 
+  async publish(identity: any) {
+    console.log('PUBLISH', identity);
+
+    const anchorOptions = { keySet: identity.did.keySet, services: identity.did.document.service };
+
+    try {
+      const anchorResult = await DidIonMethod.anchor(anchorOptions);
+      console.log(anchorResult);
+      identity.anchor = anchorResult;
+      identity.published = true;
+
+      await this.saveIdentity(identity);
+
+      console.log(anchorOptions);
+    }
+    catch (err) {
+      console.log(err);
+      debugger;
+    }
+
+  }
+
   readFiles(directory: string | string[] | null) {
+    this.identities = [];
+
     if (typeof directory === 'string') {
       fs.readDir(directory).then(files => {
         // files is an array of file paths
@@ -85,10 +140,68 @@ export class AppComponent {
     return JSON.stringify(json, null, 2);;
   }
 
+  async writeJsonToFile(path: string, data: any) {
+    try {
+      // Convert the data to a JSON string
+      const jsonString = JSON.stringify(data, null, 2);
+
+      // Write the JSON string to the file
+      await writeFile({ path, contents: jsonString });
+
+      console.log('JSON file has been written successfully');
+    } catch (error) {
+      console.error('Error writing JSON file:', error);
+    }
+  }
+
+  async saveIdentity(identity: any) {
+    const path = this.getFilePath(identity.id);
+    this.writeJsonToFile(path, identity);
+  }
+
+  getSafeIdentity(id: string) {
+    return id.substring(8); // remove did:ion:
+  }
+
+  getFilePath(id: string) {
+    return this.directory + '\\' + this.getSafeIdentity(id) + '.identity.json';
+  }
+
+  async generateIdentity(name: string, tags: string, services: any[]) {
+
+    const myIonDid = await DidIonMethod.create({ services: services });
+
+    const path = this.getFilePath(myIonDid.canonicalId!);
+    // const path = this.directory + '\\' + this.getSafeIdentity(myIonDid.canonicalId!) + '.identity.json';
+    // const data = { key: 'value' }; // replace with your actual data
+
+    const document = {
+      name: name,
+      "tags": tags.split(",").map((item: string) => item.trim()),
+      "id": myIonDid.canonicalId,
+      "published": false,
+      did: myIonDid
+    }
+
+    this.writeJsonToFile(path, document);
+  }
+
   async generate() {
 
-    const myIonDid = await DidIonMethod.create({ services: [{ id: 'domain-1', type: 'LinkedDomains', serviceEndpoint: 'https://foo.example.com'}]});
+    const myIonDid = await DidIonMethod.create({ services: [{ id: 'domain-1', type: 'LinkedDomains', serviceEndpoint: 'https://foo.example.com' }] });
     console.log(myIonDid);
+
+    const path = this.directory + '\\' + myIonDid.canonicalId!.substring(8) + '.identity.json'; // remove did:ion:
+    // const data = { key: 'value' }; // replace with your actual data
+
+    const document = {
+      name: "Sondre",
+      "tags": ["liberstad resident", "liberstad membership organisation"],
+      "id": myIonDid.canonicalId,
+      did: myIonDid
+    }
+
+    this.writeJsonToFile(path, document);
 
     // const web5 = new Web5.connect({  });
 

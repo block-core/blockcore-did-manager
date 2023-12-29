@@ -1,0 +1,32 @@
+<h2 mat-dialog-title>Create new identity</h2>
+<mat-dialog-content class="mat-typography">
+  <h3>DID ION identity</h3>
+  <p>Create a new DID ION identity by filling out this form. The identity is saved to disk at the identities
+    directory choosen earlier. The file contains private keys and should be protected and encrypted.
+  </p>
+
+  <form [formGroup]="identityForm" class="identity-form">
+
+    <mat-form-field class="full-width" appearance="outline">
+      <mat-label>Name</mat-label>
+      <input class="full-width" matInput placeholder="Identifying name of this identity" formControlName="name">
+    </mat-form-field>
+
+    <br>
+
+    <mat-form-field class="full-width" appearance="outline">
+      <mat-label>Tags</mat-label>
+      <input class="full-width" matInput placeholder="Tags (comma separated)" formControlName="tags">
+    </mat-form-field>
+
+  </form>
+
+  <p>
+
+  </p>
+
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-button [mat-dialog-close]="identityForm.value" cdkFocusInitial>Save</button>
+</mat-dialog-actions>

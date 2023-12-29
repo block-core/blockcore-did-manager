@@ -7,7 +7,7 @@
   <!-- <button mat-icon-button class="example-icon favorite-icon" aria-label="Example icon-button with heart icon">
       <mat-icon>favorite</mat-icon>
     </button> -->
-  <button mat-icon-button class="example-icon">
+  <button mat-icon-button (click)="createDialog()" class="example-icon">
     <mat-icon>add</mat-icon>
   </button>
 </mat-toolbar>
@@ -18,21 +18,25 @@
   <br><br>
   <span>Selected directory: {{directory}}</span>
   <br><br>
-  
+
 
   <div *ngFor="let identity of identities">
     Name: <strong>{{ identity.name }}</strong><br>
-    Identity: <strong>{{ identity.id }}</strong>
+    Identity: <strong><a target="_blank" [href]="'https://identity.foundation/ion/explorer/?did=' + identity.did.did">{{ identity.id }}</a></strong><br>
+    Published: {{ identity.published }}
     <br>
-    Tags: {{ identity.tags }}<br><br>
+    Tags: {{ identity.tags }}<br>
+    <button [disabled]="identity.published" mat-raised-button color="primary" (click)="publish(identity)">Publish</button>
+    <br>
+    <br>
   </div>
 
-  <br><br>
+  <!-- <br><br>
   <button mat-flat-button color="primary" (click)="generate()">Generate DID (see console output)</button>
   <br><br>
   <form class="row" (submit)="greet($event, greetInput.value)">
     <input #greetInput id="greet-input" placeholder="Enter a name..." />
     <button type="submit">Greet</button>
   </form>
-  <p>{{ greetingMessage }}</p>
+  <p>{{ greetingMessage }}</p> -->
 </div>
