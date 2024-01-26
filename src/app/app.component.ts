@@ -1,8 +1,14 @@
-import { Component } from "@angular/core";
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
-import { invoke } from "@tauri-apps/api/tauri";
-import { DID, generateKeyPair, sign, verify, anchor } from '@decentralized-identity/ion-tools';
+import { invoke } from '@tauri-apps/api/tauri';
+import {
+  DID,
+  generateKeyPair,
+  sign,
+  verify,
+  anchor,
+} from '@decentralized-identity/ion-tools';
 
 import { save } from '@tauri-apps/api/dialog';
 
@@ -16,56 +22,62 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 
-import { DidIonMethod } from '@web5/dids';
+import { DidIonMethod, DidDhtMethod } from '@web5/dids';
 import { Web5 } from '@web5/api';
 import { MatDialog } from '@angular/material/dialog';
-import { DialogCreate } from "./dialog-create.component";
+import { DialogCreate } from './dialog-create.component';
 
 @Component({
-  selector: "app-root",
+  selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, MatToolbarModule, MatButtonModule, MatIconModule],
-  templateUrl: "./app.component.html",
-  styleUrls: ["./app.component.css"],
+  imports: [
+    CommonModule,
+    RouterOutlet,
+    MatToolbarModule,
+    MatButtonModule,
+    MatIconModule,
+  ],
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css'],
 })
 export class AppComponent {
-  greetingMessage = "";
+  greetingMessage = '';
 
-  constructor(public dialog: MatDialog) {
-
-  }
+  constructor(public dialog: MatDialog) {}
 
   async createDialog() {
     const dialogRef = this.dialog.open(DialogCreate);
 
-    dialogRef.afterClosed().subscribe(async result => {
+    dialogRef.afterClosed().subscribe(async (result) => {
       console.log(result);
 
       if (result) {
-        const services = [
+        let services: any = [
           {
-            "id": "#dwn",
-            "type": "DecentralizedWebNode",
-            "serviceEndpoint": {
-              "messageAuthorizationKeys": ["#dwn-sig"],
-              "nodes": ["https://dwn.liberstad.com"],
-              "recordEncryptionKeys": ["#dwn-sig"]
-            }
-          }
+            id: '#dwn',
+            type: 'DecentralizedWebNode',
+            serviceEndpoint: {
+              messageAuthorizationKeys: ['#dwn-sig'],
+              nodes: ['https://dwn.liberstad.com'],
+              recordEncryptionKeys: ['#dwn-sig'],
+            },
+          },
         ];
+
+        // Temporarily just make it null.
+        services = undefined;
 
         await this.generateIdentity(result.name, result.tags, services);
         this.readFiles(this.directory!);
       }
     });
-    
   }
 
   greet(event: SubmitEvent, name: string): void {
     event.preventDefault();
 
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    invoke<string>("greet", { name }).then((text) => {
+    invoke<string>('greet', { name }).then((text) => {
       this.greetingMessage = text;
     });
   }
@@ -75,72 +87,83 @@ export class AppComponent {
   files: FileEntry[] = [];
 
   chooseDirectory() {
-    dialog.open({ directory: true }).then(directory => {
-      // directory is the path of the selected directory
-      console.log(directory);
-      this.directory = directory;
-      this.readFiles(this.directory);
-    }).catch(error => {
-      // handle error
-      console.error(error);
-    });
+    dialog
+      .open({ directory: true })
+      .then((directory) => {
+        // directory is the path of the selected directory
+        console.log(directory);
+        this.directory = directory;
+        this.readFiles(this.directory);
+      })
+      .catch((error) => {
+        // handle error
+        console.error(error);
+      });
   }
 
   async publish(identity: any) {
     console.log('PUBLISH', identity);
+    // const anchorOptions = { keySet: identity.keys, services: identity.did.document.service };
+    console.log(identity);
+    
+    const publishOptions = {
+      didDocument: identity.document,
+      identityKey: identity.keys.verificationMethodKeys[0]
+    };
 
-    const anchorOptions = { keySet: identity.did.keySet, services: identity.did.document.service };
+    console.log(publishOptions);
 
     try {
-      const anchorResult = await DidIonMethod.anchor(anchorOptions);
-      console.log(anchorResult);
-      identity.anchor = anchorResult;
+    // If the publish flag is set, publish the DID Document to the DHT.
+      // await this.publish({ identityKey, didDocument: document });
+      const publishResult = await DidDhtMethod.publish(publishOptions);
+      console.log(publishResult);
+      identity.anchor = publishResult;
       identity.published = true;
-
       await this.saveIdentity(identity);
-
-      console.log(anchorOptions);
     }
     catch (err) {
       console.log(err);
-      debugger;
     }
-
   }
 
   readFiles(directory: string | string[] | null) {
     this.identities = [];
 
     if (typeof directory === 'string') {
-      fs.readDir(directory).then(files => {
-        // files is an array of file paths
-        console.log(files);
+      fs.readDir(directory)
+        .then((files) => {
+          // files is an array of file paths
+          console.log(files);
 
+          this.files = files.filter((file) =>
+            file.path.endsWith('.identity.json')
+          );
 
-        this.files = files.filter(file => file.path.endsWith('.identity.json'));
-
-        this.files.forEach(file => {
-          fs.readTextFile(file.path).then(text => {
-            // text is the content of the file
-            console.log(text);
-            let json = JSON.parse(text);
-            console.log(json);
-            this.identities.push(json);
-          }).catch(error => {
-            // handle error
-            console.error(error);
+          this.files.forEach((file) => {
+            fs.readTextFile(file.path)
+              .then((text) => {
+                // text is the content of the file
+                console.log(text);
+                let json = JSON.parse(text);
+                console.log(json);
+                this.identities.push(json);
+              })
+              .catch((error) => {
+                // handle error
+                console.error(error);
+              });
           });
+        })
+        .catch((error) => {
+          // handle error
+          console.error(error);
         });
-
-      }).catch(error => {
-        // handle error
-        console.error(error);
-      });
     }
   }
 
   pretty(json: any) {
-    return JSON.stringify(json, null, 2);;
+    return JSON.stringify(json, null, 2);
   }
 
   async writeJsonToFile(path: string, data: any) {
@@ -163,7 +186,7 @@ export class AppComponent {
   }
 
   getSafeIdentity(id: string) {
-    return id.substring(8); // remove did:ion:
+    return id.substring(8); // remove did:dht:
   }
 
   getFilePath(id: string) {
@@ -171,38 +194,70 @@ export class AppComponent {
   }
 
   async generateIdentity(name: string, tags: string, services: any[]) {
+    //Creates a DID using the DHT method and publishes the DID Document to the DHT
+    const didDht = await DidDhtMethod.create({ publish: false, services: services});
 
-    const myIonDid = await DidIonMethod.create({ services: services });
+    console.log(didDht);
 
-    const path = this.getFilePath(myIonDid.canonicalId!);
+    //DID and its associated data which can be exported and used in different contexts/apps
+    const portableDID = JSON.stringify(didDht);
+
+    //DID string
+    const did = didDht.did;
+
+    //DID Document
+    const didDocument = JSON.stringify(didDht.document);
+
+    //Cryptographic keys associated with DID
+    const keys = JSON.stringify(didDht.keySet);
+
+    //Primary form of a DID. more info: https://www.w3.org/TR/did-core/#dfn-canonicalid
+    const canonicalId = did; //didDht.canonicalId;
+
+    // const myIonDid = await DidIonMethod.create({ services: services });
+
+    const path = this.getFilePath(canonicalId!);
     // const path = this.directory + '\\' + this.getSafeIdentity(myIonDid.canonicalId!) + '.identity.json';
     // const data = { key: 'value' }; // replace with your actual data
 
     const document = {
       name: name,
-      "tags": tags.split(",").map((item: string) => item.trim()),
-      "id": myIonDid.canonicalId,
-      "published": false,
-      did: myIonDid
-    }
+      tags: tags.split(',').map((item: string) => item.trim()),
+      id: canonicalId,
+      did: canonicalId,
+      published: false,
+      document: didDht.document,
+      keys: didDht.keySet
+    };
 
     this.writeJsonToFile(path, document);
   }
 
   async generate() {
-
-    const myIonDid = await DidIonMethod.create({ services: [{ id: 'domain-1', type: 'LinkedDomains', serviceEndpoint: 'https://foo.example.com' }] });
+    const myIonDid = await DidIonMethod.create({
+      services: [
+        {
+          id: 'domain-1',
+          type: 'LinkedDomains',
+          serviceEndpoint: 'https://foo.example.com',
+        },
+      ],
+    });
     console.log(myIonDid);
 
-    const path = this.directory + '\\' + myIonDid.canonicalId!.substring(8) + '.identity.json'; // remove did:ion:
+    const path =
+      this.directory +
+      '\\' +
+      myIonDid.canonicalId!.substring(8) +
+      '.identity.json'; // remove did:dht:
     // const data = { key: 'value' }; // replace with your actual data
 
     const document = {
-      name: "Sondre",
-      "tags": ["liberstad resident", "liberstad membership organisation"],
-      "id": myIonDid.canonicalId,
-      did: myIonDid
-    }
+      name: 'Sondre',
+      tags: ['liberstad resident', 'liberstad membership organisation'],
+      id: myIonDid.canonicalId,
+      did: myIonDid,
+    };
 
     this.writeJsonToFile(path, document);
 
@@ -212,7 +267,6 @@ export class AppComponent {
     // console.log(myDid);
     return;
 
-
     let authnKeys = await generateKeyPair();
     let did = new DID({
       content: {
@@ -221,17 +275,17 @@ export class AppComponent {
             id: 'key-1',
             type: 'EcdsaSecp256k1VerificationKey2019',
             publicKeyJwk: authnKeys.publicJwk,
-            purposes: ['authentication']
-          }
+            purposes: ['authentication'],
+          },
         ],
         services: [
           {
             id: 'domain-1',
             type: 'LinkedDomains',
-            serviceEndpoint: 'https://foo.example.com'
-          }
-        ]
-      }
+            serviceEndpoint: 'https://foo.example.com',
+          },
+        ],
+      },
     });
 
     console.log(did);
@@ -250,23 +304,21 @@ export class AppComponent {
     let request = await did.generateRequest(0);
     console.log(this.pretty(request));
 
-
     let payload = '';
     let key = (await did.getOperation(0)).update.privateJwk;
 
     let jws = await sign({
       privateJwk: key,
-      payload: payload
+      payload: payload,
     });
 
     let valid = await verify({
       publicJwk: key,
-      jws: jws
+      jws: jws,
     });
 
     console.log('SECP256K1 JWS verification successful:', valid);
     console.log(jws);
-
 
     // Store the key material and source data of all operations that have been created for the DID
     let ionOps = await did.getAllOperations();
@@ -275,7 +327,10 @@ export class AppComponent {
 
     const content = JSON.stringify({ ops: ionOps });
 
-    const options = { path: result + '/ion-did-ops-v1.json', contents: content };
+    const options = {
+      path: result + '/ion-did-ops-v1.json',
+      contents: content,
+    };
     await fs.writeFile(options);
 
     // const filePath = await save({
@@ -291,6 +346,5 @@ export class AppComponent {
     // await writeFile('./ion-did-ops-v1.json', JSON.stringify({ ops: ionOps }));
 
     // await anchor(request);
-
   }
 }
