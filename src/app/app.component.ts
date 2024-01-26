@@ -26,6 +26,7 @@ import { DidIonMethod, DidDhtMethod } from '@web5/dids';
 import { Web5 } from '@web5/api';
 import { MatDialog } from '@angular/material/dialog';
 import { DialogCreate } from './dialog-create.component';
+import { DialogCredential } from './dialog-credential.component';
 
 @Component({
   selector: 'app-root',
@@ -47,6 +48,34 @@ export class AppComponent {
 
   async createDialog() {
     const dialogRef = this.dialog.open(DialogCreate);
+
+    dialogRef.afterClosed().subscribe(async (result) => {
+      console.log(result);
+
+      if (result) {
+        let services: any = [
+          {
+            id: '#dwn',
+            type: 'DecentralizedWebNode',
+            serviceEndpoint: {
+              messageAuthorizationKeys: ['#dwn-sig'],
+              nodes: ['https://dwn.liberstad.com'],
+              recordEncryptionKeys: ['#dwn-sig'],
+            },
+          },
+        ];
+
+        // Temporarily just make it null.
+        services = undefined;
+
+        await this.generateIdentity(result.name, result.tags, services);
+        this.readFiles(this.directory!);
+      }
+    });
+  }
+
+  async createCredentialDialog(identity: any) {
+    const dialogRef = this.dialog.open(DialogCredential);
 
     dialogRef.afterClosed().subscribe(async (result) => {
       console.log(result);
@@ -110,6 +139,7 @@ export class AppComponent {
       didDocument: identity.document,
       identityKey: identity.keys.verificationMethodKeys[0]
     };
+
 
     console.log(publishOptions);
 
