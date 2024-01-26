@@ -6,8 +6,8 @@
     "distDir": "../dist/app"
   },
   "package": {
-    "productName": "DID Manager",
-    "version": "0.0.3"
+    "productName": "Blockcore DID Manager",
+    "version": "0.0.4"
   },
   "tauri": {
     "allowlist": {
