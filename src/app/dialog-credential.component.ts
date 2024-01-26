@@ -19,9 +19,9 @@ import { MatInputModule } from '@angular/material/input';
 })
 export class DialogCredential {
   identityForm = new FormGroup({
-    name: new FormControl(''),
+    did: new FormControl(''),
     tags: new FormControl(
-      'liberstad resident, liberstad membership organisation, liberstad city council'
+      'World Voluntaryist Organisation, WVO, The Voluntaryist Covenant'
     ),
   });
 }

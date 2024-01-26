@@ -24,6 +24,7 @@
     "@decentralized-identity/ion-tools": "^1.1.4",
     "@tauri-apps/api": "^1.5.3",
     "@web5/api": "^0.8.3",
+    "@web5/credentials": "^0.4.1",
     "@web5/dids": "^0.2.4",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.0",

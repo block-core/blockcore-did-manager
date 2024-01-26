@@ -27,6 +27,7 @@ import { Web5 } from '@web5/api';
 import { MatDialog } from '@angular/material/dialog';
 import { DialogCreate } from './dialog-create.component';
 import { DialogCredential } from './dialog-credential.component';
+import { VerifiableCredential, PresentationExchange } from '@web5/credentials';
 
 @Component({
   selector: 'app-root',
@@ -81,23 +82,48 @@ export class AppComponent {
       console.log(result);
 
       if (result) {
-        let services: any = [
-          {
-            id: '#dwn',
-            type: 'DecentralizedWebNode',
-            serviceEndpoint: {
-              messageAuthorizationKeys: ['#dwn-sig'],
-              nodes: ['https://dwn.liberstad.com'],
-              recordEncryptionKeys: ['#dwn-sig'],
-            },
+        console.log(identity);
+        console.log(result);
+
+        const tags = result.tags;
+
+        const vc = await VerifiableCredential.create({
+          type: 'WorldVoluntaryistOrganisation',
+          issuer: identity.id,
+          subject: result.did,
+          data: {
+            signed: 'The Voluntaryist Covenant',
+            version: '1.0',
           },
-        ];
+        });
 
-        // Temporarily just make it null.
-        services = undefined;
+        const signedVcJwt = await vc.sign({ did: identity.did });
 
-        await this.generateIdentity(result.name, result.tags, services);
-        this.readFiles(this.directory!);
+        const vcJson = {
+          issuer: identity.id,
+          tags: tags.split(',').map((item: string) => item.trim()),
+          vc: signedVcJwt,
+        };
+
+        await this.saveCredential(vc.vcDataModel.id!, vcJson);
+
+        // let services: any = [
+        //   {
+        //     id: '#dwn',
+        //     type: 'DecentralizedWebNode',
+        //     serviceEndpoint: {
+        //       messageAuthorizationKeys: ['#dwn-sig'],
+        //       nodes: ['https://dwn.liberstad.com'],
+        //       recordEncryptionKeys: ['#dwn-sig'],
+        //     },
+        //   },
+        // ];
+
+        // // Temporarily just make it null.
+        // services = undefined;
+
+        // await this.generateIdentity(result.name, result.tags, services);
+        // this.readFiles(this.directory!);
       }
     });
   }
@@ -134,25 +160,23 @@ export class AppComponent {
     console.log('PUBLISH', identity);
     // const anchorOptions = { keySet: identity.keys, services: identity.did.document.service };
     console.log(identity);
-    
-    const publishOptions = {
-      didDocument: identity.document,
-      identityKey: identity.keys.verificationMethodKeys[0]
-    };
 
+    const publishOptions = {
+      didDocument: identity.did.document,
+      identityKey: identity.did.keySet.verificationMethodKeys[0],
+    };
 
     console.log(publishOptions);
 
     try {
-    // If the publish flag is set, publish the DID Document to the DHT.
+      // If the publish flag is set, publish the DID Document to the DHT.
       // await this.publish({ identityKey, didDocument: document });
       const publishResult = await DidDhtMethod.publish(publishOptions);
       console.log(publishResult);
       identity.anchor = publishResult;
       identity.published = true;
       await this.saveIdentity(identity);
-    }
-    catch (err) {
+    } catch (err) {
       console.log(err);
     }
   }
@@ -210,22 +234,41 @@ export class AppComponent {
     }
   }
 
+  async writeTextToFile(path: string, data: string) {
+    try {
+      // Write the JSON string to the file
+      await writeFile({ path, contents: data });
+
+      console.log('File has been written successfully');
+    } catch (error) {
+      console.error('Error writing file:', error);
+    }
+  }
+
+  async saveCredential(id: string, credential: any) {
+    const path = this.getFilePath(id, 'credential');
+    this.writeJsonToFile(path, credential);
+  }
+
   async saveIdentity(identity: any) {
-    const path = this.getFilePath(identity.id);
+    const path = this.getFilePath(identity.id, 'identity');
     this.writeJsonToFile(path, identity);
   }
 
   getSafeIdentity(id: string) {
-    return id.substring(8); // remove did:dht:
+    return id.replace('did:dht:', '').replace('urn:uuid:', '');
   }
 
-  getFilePath(id: string) {
-    return this.directory + '\\' + this.getSafeIdentity(id) + '.identity.json';
+  getFilePath(id: string, type: string) {
+    return `${this.directory}\\${this.getSafeIdentity(id)}.${type}.json`;
   }
 
   async generateIdentity(name: string, tags: string, services: any[]) {
     //Creates a DID using the DHT method and publishes the DID Document to the DHT
-    const didDht = await DidDhtMethod.create({ publish: false, services: services});
+    const didDht = await DidDhtMethod.create({
+      publish: false,
+      services: services,
+    });
 
     console.log(didDht);
 
@@ -246,7 +289,7 @@ export class AppComponent {
 
     // const myIonDid = await DidIonMethod.create({ services: services });
 
-    const path = this.getFilePath(canonicalId!);
+    const path = this.getFilePath(canonicalId!, 'identity');
     // const path = this.directory + '\\' + this.getSafeIdentity(myIonDid.canonicalId!) + '.identity.json';
     // const data = { key: 'value' }; // replace with your actual data
 
@@ -254,10 +297,10 @@ export class AppComponent {
       name: name,
       tags: tags.split(',').map((item: string) => item.trim()),
       id: canonicalId,
-      did: canonicalId,
+      did: didDht,
       published: false,
-      document: didDht.document,
-      keys: didDht.keySet
+      // document: didDht.document,
+      // keys: didDht.keySet,
     };
 
     this.writeJsonToFile(path, document);
