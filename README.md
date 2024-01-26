@@ -1,6 +1,10 @@
 README.md
-# did-ion-manager
-Focused app that helps you manage DID ION identities
+# did-manager
+Focused app that helps you manage DID identities.
+
+## Supported DIDs
+
+- did:dht
 
 ## Recommended IDE Setup
 

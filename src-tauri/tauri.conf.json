@@ -6,8 +6,8 @@
     "distDir": "../dist/app"
   },
   "package": {
-    "productName": "DID ION Manager",
-    "version": "0.0.1"
+    "productName": "DID Manager",
+    "version": "0.0.2"
   },
   "tauri": {
     "allowlist": {
@@ -40,7 +40,7 @@
     "bundle": {
       "active": true,
       "targets": "all",
-      "identifier": "net.blockcore.did-ion-manager",
+      "identifier": "net.blockcore.did-manager",
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",
@@ -56,7 +56,7 @@
       {
         "fullscreen": false,
         "resizable": true,
-        "title": "DID ION Manager",
+        "title": "DID Manager",
         "width": 800,
         "height": 600
       }

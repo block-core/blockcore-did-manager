@@ -1,5 +1,5 @@
 {
-  "name": "did-ion-manager",
+  "name": "did-manager",
   "version": "0.0.2",
   "scripts": {
     "ng": "ng",
