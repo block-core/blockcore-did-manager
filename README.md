@@ -1,6 +1,9 @@
 README.md
-# did-manager
-Focused app that helps you manage DID identities.
+# Blockcore DID Manager
+
+Focused app that helps you manage DID identities and issue verifiable credentials (VC).
+
+![Screenshot](screenshot.png)
 
 ## Supported DIDs
 
