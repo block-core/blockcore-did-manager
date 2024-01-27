@@ -75,6 +75,11 @@ export class AppComponent {
     });
   }
 
+  copyPortable(identity: any) {
+    const portable = JSON.stringify(identity.did);
+    navigator.clipboard.writeText(portable);
+  }
+
   async createCredentialDialog(identity: any) {
     const dialogRef = this.dialog.open(DialogCredential);
 
@@ -98,6 +103,9 @@ export class AppComponent {
         });
 
         const signedVcJwt = await vc.sign({ did: identity.did });
+
+        // const vcDoc = VerifiableCredential.parseJwt({ vcJwt: signedVcJwt });
+        // console.log(vcDoc);
 
         const vcJson = {
           issuer: identity.id,
