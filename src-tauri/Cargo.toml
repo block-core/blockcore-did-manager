@@ -1,7 +1,7 @@
 [package]
 name = "blockcore-did-manager"
-version = "0.0.4"
-description = "DID Manager"
+version = "0.0.5"
+description = "Blockcore DID Manager"
 authors = ["Blockcore"]
 license = ""
 repository = ""
