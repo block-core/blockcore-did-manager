@@ -303,7 +303,7 @@ export class AppComponent {
       // keys: didDht.keySet,
     };
 
-    this.writeJsonToFile(path, document);
+    await this.writeJsonToFile(path, document);
   }
 
   async generate() {
