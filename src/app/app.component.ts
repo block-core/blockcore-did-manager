@@ -92,25 +92,44 @@ export class AppComponent {
 
         const tags = result.tags;
 
-        const vc = await VerifiableCredential.create({
-          type: 'WorldVoluntaryistOrganisation',
-          issuer: identity.id,
-          subject: result.did,
-          data: {
-            signed: 'The Voluntaryist Covenant',
-            version: '1.0',
-          },
-        });
+        let vcPayload: any = {};
+
+        if (result.schema === 'IdentityCredential') {
+          vcPayload = {
+            type: 'IdentityCredential',
+            issuer: identity.id,
+            subject: result.did,
+            data: {
+              name: result.name,
+              birthdate: result.birthdate,
+            },
+          };
+        } else if (
+          result.schema === 'WorldVoluntaryistOrganisationCredential'
+        ) {
+          vcPayload = {
+            type: 'WorldVoluntaryistOrganisation',
+            issuer: identity.id,
+            subject: result.did,
+            data: {
+              signed: 'The Voluntaryist Covenant',
+              version: '1.0',
+            },
+          };
+        }
+
+        const vc = await VerifiableCredential.create(vcPayload);
 
         const signedVcJwt = await vc.sign({ did: identity.did });
 
-        // const vcDoc = VerifiableCredential.parseJwt({ vcJwt: signedVcJwt });
-        // console.log(vcDoc);
+        const vcDoc = VerifiableCredential.parseJwt({ vcJwt: signedVcJwt });
+        console.log(vcDoc);
 
         const vcJson = {
           issuer: identity.id,
           tags: tags.split(',').map((item: string) => item.trim()),
-          vc: signedVcJwt,
+          jwt: signedVcJwt,
+          vc: vcDoc.vcDataModel
         };
 
         await this.saveCredential(vc.vcDataModel.id!, vcJson);
@@ -195,9 +214,6 @@ export class AppComponent {
     if (typeof directory === 'string') {
       fs.readDir(directory)
         .then((files) => {
-          // files is an array of file paths
-          console.log(files);
-
           this.files = files.filter((file) =>
             file.path.endsWith('.identity.json')
           );
@@ -206,9 +222,7 @@ export class AppComponent {
             fs.readTextFile(file.path)
               .then((text) => {
                 // text is the content of the file
-                console.log(text);
                 let json = JSON.parse(text);
-                console.log(json);
                 this.identities.push(json);
               })
               .catch((error) => {

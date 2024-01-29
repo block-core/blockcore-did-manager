@@ -5,6 +5,15 @@ Focused app that helps you manage DID identities and issue verifiable credential
 
 ![Screenshot](screenshot.png)
 
+You can download the app from the [Releases](Releases) page.
+
+## Run app as developer
+
+```
+npm install
+npm run tauri dev
+```
+
 ## Supported DIDs
 
 - did:dht
