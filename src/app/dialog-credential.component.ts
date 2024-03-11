@@ -30,6 +30,6 @@ export class DialogCredential {
     ),
 
     name: new FormControl(''),
-    birthdate: new FormControl(''),
+    birthDate: new FormControl(''),
   });
 }

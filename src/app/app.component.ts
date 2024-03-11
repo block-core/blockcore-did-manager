@@ -101,7 +101,7 @@ export class AppComponent {
             subject: result.did,
             data: {
               name: result.name,
-              birthdate: result.birthdate,
+              birthDate: result.birthDate,
             },
           };
         } else if (
