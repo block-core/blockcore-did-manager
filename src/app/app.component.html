@@ -80,12 +80,23 @@
     ></qrcode>
 
     <p>
-      <strong>Private Key:</strong>
-      {{ identity.did.keySet.verificationMethodKeys[0].privateKeyJwk.x }}
+      <strong>Public Key:</strong>
+      {{ identity.did.keySet.verificationMethodKeys[0].publicKeyJwk.x }}
     </p>
 
     <qrcode
-      [qrdata]="identity.did.keySet.verificationMethodKeys[0].privateKeyJwk.x"
+      [qrdata]="identity.did.keySet.verificationMethodKeys[0].publicKeyJwk.x"
+      [width]="256"
+      [errorCorrectionLevel]="'M'"
+    ></qrcode>
+
+    <p>
+      <strong>Private Key:</strong>
+      {{ identity.did.keySet.verificationMethodKeys[0].privateKeyJwk.d }}
+    </p>
+
+    <qrcode
+      [qrdata]="identity.did.keySet.verificationMethodKeys[0].privateKeyJwk.d"
       [width]="256"
       [errorCorrectionLevel]="'M'"
     ></qrcode>
