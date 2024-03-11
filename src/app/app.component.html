@@ -1,5 +1,9 @@
 <mat-toolbar color="primary">
-  <button mat-icon-button class="example-icon" aria-label="Example icon-button with menu icon">
+  <button
+    mat-icon-button
+    class="example-icon"
+    aria-label="Example icon-button with menu icon"
+  >
     <mat-icon>menu</mat-icon>
   </button>
   <span>Blockcore DID Manager</span>
@@ -13,27 +17,95 @@
 </mat-toolbar>
 
 <div class="container">
-
-  <button mat-raised-button color="primary" (click)="chooseDirectory()">Choose directory for identities...</button>
-  <br><br>
-  <span>Selected directory: {{directory}}</span>
-  <br><br>
-
+  <button mat-raised-button color="primary" (click)="chooseDirectory()">
+    Choose directory for identities...
+  </button>
+  <br /><br />
+  <span>Selected directory: {{ directory }}</span>
+  <br /><br />
 
   <div *ngFor="let identity of identities">
-    Name: <strong>{{ identity.name }}</strong><br>
-    Identity: <strong><a target="_blank" [href]="'https://identity.foundation/ion/explorer/?did=' + identity.did.did">{{ identity.id }}</a></strong><br>
+    Name: <strong>{{ identity.name }}</strong
+    ><br />
+    Identity:
+    <strong
+      ><a
+        target="_blank"
+        [href]="
+          'https://identity.foundation/ion/explorer/?did=' + identity.did.did
+        "
+        >{{ identity.id }}</a
+      ></strong
+    ><br />
     Published: {{ identity.published }}
-    <br>
-    Tags: {{ identity.tags }}<br>
-    <button [disabled]="identity.published" mat-raised-button color="primary" (click)="publish(identity)">Publish</button>
+    <br />
+    Tags: {{ identity.tags }}<br />
+    <button
+      [disabled]="identity.published"
+      mat-raised-button
+      color="primary"
+      (click)="publish(identity)"
+    >
+      Publish
+    </button>
     &nbsp;
-    <button mat-raised-button color="primary" (click)="createCredentialDialog(identity)">Issue Credential</button>
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="createCredentialDialog(identity)"
+    >
+      Issue Credential
+    </button>
     &nbsp;
-    <button mat-raised-button color="primary" (click)="copyPortable(identity)">Copy Portable</button>
-    <br>
-    <br>
+    <button mat-raised-button color="primary" (click)="copyPortable(identity)">
+      Copy Portable
+    </button>
+    &nbsp;
+    <button mat-raised-button color="primary" (click)="print(identity)">
+      Print
+    </button>
+    <br />
+    <br />
   </div>
+
+  <ng-template #listHeros let-identity="identity">
+    <h1>Name: {{ identity.name }}</h1>
+    <p><strong>Tags:</strong> {{ identity.tags }}</p>
+    <p><strong>DID:</strong> {{ identity.id }}</p>
+
+    <qrcode
+      [qrdata]="identity.id"
+      [width]="256"
+      [errorCorrectionLevel]="'M'"
+    ></qrcode>
+
+    <p>
+      <strong>Private Key:</strong>
+      {{ identity.did.keySet.verificationMethodKeys[0].privateKeyJwk.x }}
+    </p>
+
+    <qrcode
+      [qrdata]="identity.did.keySet.verificationMethodKeys[0].privateKeyJwk.x"
+      [width]="256"
+      [errorCorrectionLevel]="'M'"
+    ></qrcode>
+
+    <!-- <ng-container *ngFor="let hero of heros">
+      <div
+        mat-card-avatar
+        class="example-header-image"
+        [style.backgroundImage]="hero.avatar"
+      ></div>
+
+      <img [src]="hero.avatar" [alt]="hero.name" />
+
+      <p>
+        {{ hero.description }}
+      </p>
+    </ng-container> -->
+  </ng-template>
+
+  <iframe #iframe></iframe>
 
   <!-- <br><br>
   <button mat-flat-button color="primary" (click)="generate()">Generate DID (see console output)</button>

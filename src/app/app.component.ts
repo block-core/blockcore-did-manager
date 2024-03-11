@@ -1,4 +1,11 @@
-import { Component } from '@angular/core';
+import {
+  ApplicationRef,
+  Component,
+  ComponentFactoryResolver,
+  Injector,
+  ViewChild,
+  ViewContainerRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { invoke } from '@tauri-apps/api/tauri';
@@ -29,6 +36,14 @@ import { DialogCreate } from './dialog-create.component';
 import { DialogCredential } from './dialog-credential.component';
 import { VerifiableCredential, PresentationExchange } from '@web5/credentials';
 
+import {
+  DomPortalOutlet,
+  PortalOutlet,
+  TemplatePortal,
+} from '@angular/cdk/portal';
+
+import { QRCodeModule } from 'angularx-qrcode';
+
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -38,6 +53,7 @@ import { VerifiableCredential, PresentationExchange } from '@web5/credentials';
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,
+    QRCodeModule,
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
@@ -45,7 +61,17 @@ import { VerifiableCredential, PresentationExchange } from '@web5/credentials';
 export class AppComponent {
   greetingMessage = '';
 
-  constructor(public dialog: MatDialog) {}
+  @ViewChild('listHeros') listHerosRef: any; // printable content.
+  @ViewChild('iframe') iframe: any; // target host to render the printable content
+  private portalHost?: PortalOutlet;
+
+  constructor(
+    public dialog: MatDialog,
+    private componentFactoryResolver: ComponentFactoryResolver,
+    private injector: Injector,
+    private appRef: ApplicationRef,
+    private viewContainerRef: ViewContainerRef
+  ) {}
 
   async createDialog() {
     const dialogRef = this.dialog.open(DialogCreate);
@@ -129,7 +155,7 @@ export class AppComponent {
           issuer: identity.id,
           tags: tags.split(',').map((item: string) => item.trim()),
           jwt: signedVcJwt,
-          vc: vcDoc.vcDataModel
+          vc: vcDoc.vcDataModel,
         };
 
         await this.saveCredential(vc.vcDataModel.id!, vcJson);
@@ -181,6 +207,81 @@ export class AppComponent {
         // handle error
         console.error(error);
       });
+  }
+
+  print(identity: any): void {
+    const iframe = this.iframe.nativeElement;
+    // const newWindow = window.open('', '_blank');
+
+    this.portalHost = new DomPortalOutlet(
+      iframe.contentDocument.body,
+      this.componentFactoryResolver,
+      this.appRef,
+      this.injector
+    );
+
+    const portal = new TemplatePortal(
+      this.listHerosRef,
+      this.viewContainerRef,
+      {
+        identity: identity,
+      }
+    );
+
+    // Attach portal to host
+    this.portalHost.attach(portal);
+
+    iframe.contentWindow.onafterprint = () => {
+      iframe.contentDocument.body.innerHTML = '';
+    };
+
+    this.waitForImageToLoad(iframe, () => iframe.contentWindow.print());
+  }
+
+  ngOnDestroy(): void {
+    this.portalHost?.detach();
+  }
+
+  private waitForImageToLoad(
+    iframe: HTMLIFrameElement | any,
+    done: Function
+  ): void {
+    const interval = setInterval(() => {
+      const allImages =
+        iframe.contentDocument.body.querySelectorAll('img.card-image');
+      const loaded = Array.from({ length: allImages.length }).fill(false);
+      allImages.forEach((img: HTMLImageElement, idx: any) => {
+        loaded[idx] = img.complete && img.naturalHeight !== 0;
+      });
+      if (loaded.every((c) => c === true)) {
+        clearInterval(interval);
+        done();
+      }
+    }, 500);
+  }
+
+  private _attachStyles(targetWindow: Window): void {
+    // Copy styles from parent window
+    document.querySelectorAll('style').forEach((htmlElement) => {
+      targetWindow.document.head.appendChild(htmlElement.cloneNode(true));
+    });
+    // Copy stylesheet link from parent window
+    const styleSheetElement = this._getStyleSheetElement();
+    targetWindow.document.head.appendChild(styleSheetElement);
+  }
+
+  private _getStyleSheetElement() {
+    const styleSheetElement = document.createElement('link');
+    document.querySelectorAll('link').forEach((htmlElement) => {
+      if (htmlElement.rel === 'stylesheet') {
+        const absoluteUrl = new URL(htmlElement.href).href;
+        styleSheetElement.rel = 'stylesheet';
+        styleSheetElement.type = 'text/css';
+        styleSheetElement.href = absoluteUrl;
+      }
+    });
+    console.log(styleSheetElement.sheet);
+    return styleSheetElement;
   }
 
   async publish(identity: any) {
