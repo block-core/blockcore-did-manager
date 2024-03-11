@@ -4,6 +4,7 @@ module.exports = {
     resolve: {
         fallback: {
             vm: false,
+            "sodium-native": false,
             "crypto": require.resolve("crypto-browserify"),
             "stream": require.resolve("stream-browserify"),
             "buffer": require.resolve("buffer")
